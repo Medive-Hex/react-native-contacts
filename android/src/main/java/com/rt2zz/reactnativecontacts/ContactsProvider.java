@@ -33,6 +33,7 @@ public class ContactsProvider {
 
     private static final List<String> JUST_ME_PROJECTION = new ArrayList<String>() {{
         add((ContactsContract.Data._ID));
+        add(ContactsContract.Data.CONTACT_LAST_UPDATED_TIMESTAMP);
         add(ContactsContract.Data.CONTACT_ID);
         add(ContactsContract.Data.RAW_CONTACT_ID);
         add(ContactsContract.Data.LOOKUP_KEY);
@@ -246,9 +247,14 @@ public class ContactsProvider {
             int columnIndexContactId = cursor.getColumnIndex(ContactsContract.Data.CONTACT_ID);
             int columnIndexId = cursor.getColumnIndex(ContactsContract.Data._ID);
             int columnIndexRawContactId = cursor.getColumnIndex(ContactsContract.Data.RAW_CONTACT_ID);
+            int columnIndexLatestUpdateTs = cursor.getColumnIndex(ContactsContract.Data.CONTACT_LAST_UPDATED_TIMESTAMP);
             String contactId;
             String id;
             String rawContactId;
+            String latestUpdateTs = "";
+            if (columnIndexLatestUpdateTs != -1) {
+                latestUpdateTs = cursor.getString(columnIndexLatestUpdateTs);
+            }
             if (columnIndexContactId != -1) {
                 contactId = cursor.getString(columnIndexContactId);
             } else {
@@ -281,6 +287,7 @@ public class ContactsProvider {
             if (!TextUtils.isEmpty(name) && TextUtils.isEmpty(contact.displayName)) {
                 contact.displayName = name;
             }
+            contact.latestUpdateTs = latestUpdateTs;
 
             if (TextUtils.isEmpty(contact.photoUri)) {
                 String rawPhotoURI = cursor.getString(cursor.getColumnIndex(Contactables.PHOTO_URI));
@@ -420,6 +427,7 @@ public class ContactsProvider {
         private String contactId;
         private String rawContactId;
         private String displayName;
+        private String latestUpdateTs = "";
         private String givenName = "";
         private String middleName = "";
         private String familyName = "";
@@ -444,6 +452,7 @@ public class ContactsProvider {
 
         public WritableMap toMap() {
             WritableMap contact = Arguments.createMap();
+            contact.putString("latestUpdateTs", latestUpdateTs);
             contact.putString("recordID", contactId);
             contact.putString("rawContactId", rawContactId);
             contact.putString("givenName", TextUtils.isEmpty(givenName) ? displayName : givenName);
